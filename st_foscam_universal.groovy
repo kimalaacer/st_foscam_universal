@@ -1,8 +1,3 @@
-/* 
-*  Original Author: skp19
-*  https://github.com/skp19/st_foscam_universal
-*/
-
 metadata {
   definition (name: "Foscam Universal Device", namespace: "Foscam", author: "skp19") {
     capability "Polling"
