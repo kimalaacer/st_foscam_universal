@@ -69,6 +69,19 @@ metadata {
   }
 }
 
+def installed() {
+  initialize()
+}
+
+def updated() {
+  initialize()
+}
+
+private def initialize() {
+  def sched = "0 0/1 * * * ?" // every minute
+  schedule(sched, motionCheck)
+}
+
 def take() {
   log.debug("Taking Photo")
   sendEvent(name: "hubactionMode", value: "s3");
@@ -218,8 +231,8 @@ def parse(String description) {
             log.info("Polled: Alarm On")
             sendEvent(name: "alarmStatus", value: "on")
           }
-        else if(description.find("alarm_status")) {
-          if(description.find("alarm_status=0")) {
+        else if(body.find("alarm_status")) {
+          if(body.find("alarm_status=0")) {
             log.info("Polled: Motion None")
              sendEvent(name: "motion", value: "inactive")
           }
