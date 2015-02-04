@@ -89,6 +89,7 @@ def toggleAlarm() {
 
 def alarmCheck()
 {
+  log.debug "Check Alarm"
   hubGet("/get_status.cgi?")
   if(device.currentValue("alarmState") == "on"){
     sendPush "Foscam Motion Detected!"
