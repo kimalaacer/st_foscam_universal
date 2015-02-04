@@ -8,12 +8,15 @@ metadata {
     capability "Polling"
     capability "Image Capture"
 
+    attribute "alarmState", "string"
     attribute "alarmStatus", "string"
     attribute "hubactionMode", "string"
 
     command "alarmOn"
     command "alarmOff"
     command "toggleAlarm"
+
+    command "alarmCheck"
   }
 
     preferences {
@@ -24,15 +27,12 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
-    section("Options") {
-        input "notify", "bool", title: "Notification?"
-    }
  }
 
   tiles {
     carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
-    standardTile("camera", "device.alarmStatus", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
+    standardTile("camera", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
       state "off", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
       state "on", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
@@ -46,6 +46,11 @@ metadata {
     standardTile("alarmStatus", "device.alarmStatus", width: 1, height: 1, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
       state "off", label: "off", action: "toggleAlarm", icon: "st.security.alarm.off", backgroundColor: "#FFFFFF"
       state "on", label: "on", action: "toggleAlarm", icon: "st.security.alarm.on",  backgroundColor: "#53A7C0"
+    }
+
+    standardTile("alarmState", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
+      state "off", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+      state "on", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
 
     standardTile("refresh", "device.alarmStatus", inactiveLabel: false, decoration: "flat") {
@@ -82,6 +87,14 @@ def toggleAlarm() {
   }
 }
 
+def alarmCheck()
+{
+  hubGet("/get_status.cgi?")
+  if(device.currentValue("alarmState") == "on"){
+    sendPush "Foscam Motion Detected!"
+  }
+}
+
 def alarmOn() {
   log.debug "Enabling Alarm"
     sendEvent(name: "alarmStatus", value: "on");
@@ -109,10 +122,10 @@ def poll() {
   sendEvent(name: "hubactionMode", value: "local");
     //Poll Motion Alarm Status and IR LED Mode
     if(hdcamera == "true") {
-    delayBetween([hubGet("cmd=getMotionDetectConfig")])
+      delayBetween([hubGet("cmd=getMotionDetectConfig")])
     }
     else {
-      hubGet("/get_params.cgi?")
+      delayBetween([hubGet("/get_params.cgi?"), hubGet("/get_status.cgi?")])
     }
 }
 
@@ -195,17 +208,26 @@ def parse(String description) {
                 sendEvent(name: "ledStatus", value: "manual")
             }
       }
-        else {
-          if(body.find("alarm_motion_armed=0")) {
-        log.info("Polled: Alarm Off")
-                sendEvent(name: "alarmStatus", value: "off")
-            }
-          else if(body.find("alarm_motion_armed=1")) {
-        log.info("Polled: Alarm On")
-                sendEvent(name: "alarmStatus", value: "on")
-            }
-            //The API does not provide a way to poll for LED status on 8xxx series at the moment
+      else {
+        if(body.find("alarm_motion_armed=0")) {
+            log.info("Polled: Alarm Off")
+            sendEvent(name: "alarmStatus", value: "off")
+          }
+        else if(body.find("alarm_motion_armed=1")) {
+            log.info("Polled: Alarm On")
+            sendEvent(name: "alarmStatus", value: "on")
+          }
+        else if(body.find("alarm_status")) {
+          if(body.find("alarm_status=0")) {
+            log.info("Polled: Alarm None")
+             sendEvent(name: "alarmState", value: "off")
+          }
+          else { // motion, input, or sound
+            log.info("Polled: Alarm Active")
+            sendEvent(name: "alarmState", value: "on")
+          }
         }
+      }
   }
 }
 
@@ -257,10 +279,4 @@ private String convertIPtoHex(ipAddress) {
 private String convertPortToHex(port) {
   String hexport = port.toString().format( '%04x', port.toInteger() )
     return hexport
-}
-
-def sendMessage(msg) {
-  if (notify) {
-    sendPush msg
-  }
 }
