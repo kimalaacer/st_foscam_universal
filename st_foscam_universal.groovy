@@ -33,8 +33,8 @@ metadata {
     carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
     standardTile("camera", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
-      state "off", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
-      state "on", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
+      state "clear", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+      state "alarm", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
 
     standardTile("take", "device.image", width: 1, height: 1, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
@@ -43,14 +43,14 @@ metadata {
       state "image", label: "Take", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
     }
 
-    standardTile("alarmStatus", "device.alarmStatus", width: 1, height: 1, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
+    standardTile("alarmStatus", "device.alarmStatus", width: 1, height: 1, canChangeIcon: false, inactiveLabel: false, canChangeBackground: false) {
       state "off", label: "off", action: "toggleAlarm", icon: "st.security.alarm.off", backgroundColor: "#FFFFFF"
       state "on", label: "on", action: "toggleAlarm", icon: "st.security.alarm.on",  backgroundColor: "#53A7C0"
     }
 
     standardTile("alarmState", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
-      state "off", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
-      state "on", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
+      state "clear", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+      state "alarm", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
 
     standardTile("refresh", "device.alarmStatus", inactiveLabel: false, decoration: "flat") {
