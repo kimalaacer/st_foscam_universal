@@ -62,7 +62,7 @@ metadata {
     }
 
     main "camera"
-    details(["cameraDetails", "take", "alarmStatus", "refresh"])
+    details(["cameraDetails", "take", "alarmStatus", "alarmState", "refresh"])
   }
 }
 
