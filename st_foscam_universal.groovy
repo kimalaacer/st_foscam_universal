@@ -7,8 +7,9 @@ metadata {
   definition (name: "Foscam Universal Device", namespace: "Foscam", author: "skp19") {
     capability "Polling"
     capability "Image Capture"
+    capability "Motion Sensor"
 
-    attribute "alarmState", "string"
+    attribute "motion", "string"
     attribute "alarmStatus", "string"
     attribute "hubactionMode", "string"
 
@@ -16,7 +17,7 @@ metadata {
     command "alarmOff"
     command "toggleAlarm"
 
-    command "alarmCheck"
+    command "motionCheck"
   }
 
     preferences {
@@ -32,8 +33,9 @@ metadata {
   tiles {
     carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
-    standardTile("camera", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
-      state "clear", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+    standardTile("camera", "device.motion", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
+      state "inactive", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+      state "active", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
       state "alarm", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
 
@@ -48,9 +50,10 @@ metadata {
       state "on", label: "on", action: "toggleAlarm", icon: "st.security.alarm.on",  backgroundColor: "#53A7C0"
     }
 
-    standardTile("alarmState", "device.alarmState", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
-      state "clear", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
-      state "alarm", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
+    standardTile("motion", "device.motion", width: 2, height: 2, canChangeBackground: true, canChangeIcon: true) {
+      state("active",   label:'motion',    icon:"st.motion.motion.active",   backgroundColor:"#53a7c0")
+      state("inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff")
+      state("alarm",    label:'ALARM',     icon:"st.motion.motion.active",   backgroundColor:"#ff0000")
     }
 
     standardTile("refresh", "device.alarmStatus", inactiveLabel: false, decoration: "flat") {
@@ -62,7 +65,7 @@ metadata {
     }
 
     main "camera"
-    details(["cameraDetails", "take", "alarmStatus", "alarmState", "refresh"])
+    details(["cameraDetails", "take", "alarmStatus", "motion", "refresh"])
   }
 }
 
@@ -87,13 +90,11 @@ def toggleAlarm() {
   }
 }
 
-def alarmCheck()
+def motionCheck()
 {
-  log.debug "Check Alarm"
+  log.debug "Check Motion"
   hubGet("/get_status.cgi?")
-  if(device.currentValue("alarmState") == "on"){
-    sendPush "Foscam Motion Detected!"
-  }
+  return device.currentValue("motion")
 }
 
 def alarmOn() {
@@ -119,15 +120,14 @@ def alarmOff() {
 }
 
 def poll() {
-
   sendEvent(name: "hubactionMode", value: "local");
-    //Poll Motion Alarm Status and IR LED Mode
-    if(hdcamera == "true") {
-      delayBetween([hubGet("cmd=getMotionDetectConfig")])
-    }
-    else {
-      delayBetween([hubGet("/get_params.cgi?"), hubGet("/get_status.cgi?")])
-    }
+  //Poll Motion Alarm Status and IR LED Mode
+  if(hdcamera == "true") {
+    delayBetween([hubGet("cmd=getMotionDetectConfig")])
+  }
+  else {
+    delayBetween([hubGet("/get_params.cgi?"), hubGet("/get_status.cgi?")])
+  }
 }
 
 private getLogin() {
@@ -218,14 +218,14 @@ def parse(String description) {
             log.info("Polled: Alarm On")
             sendEvent(name: "alarmStatus", value: "on")
           }
-        else if(body.find("alarm_status")) {
-          if(body.find("alarm_status=0")) {
-            log.info("Polled: Alarm None")
-             sendEvent(name: "alarmState", value: "off")
+        else if(description.find("alarm_status")) {
+          if(description.find("alarm_status=0")) {
+            log.info("Polled: Motion None")
+             sendEvent(name: "motion", value: "inactive")
           }
           else { // motion, input, or sound
             log.info("Polled: Alarm Active")
-            sendEvent(name: "alarmState", value: "on")
+            sendEvent(name: "motion", value: "active")
           }
         }
       }
