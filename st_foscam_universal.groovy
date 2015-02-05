@@ -40,9 +40,9 @@ metadata {
     carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
     standardTile("camera", "device.motion", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
-      state "inactive", label: "off", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
-      state "active", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
-      state "alarm", label: "on", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
+      state "inactive", label: "no motion", icon: "st.camera.dropcam-centered", backgroundColor: "#FFFFFF"
+      state "active", label: "motion", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
+      state "alarm", label: "ALARM", icon: "st.camera.dropcam-centered",  backgroundColor: "#53A7C0"
     }
 
     standardTile("take", "device.image", width: 1, height: 1, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
