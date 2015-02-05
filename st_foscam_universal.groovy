@@ -1,3 +1,13 @@
+/* 
+*  SmartThings
+*
+*  Original Author: skp19
+*  https://github.com/skp19/st_foscam_universal
+*
+*  Modified Author: justinlhudson
+*  https://github.com/justinlhudson/st_foscam_universal
+*/
+
 metadata {
   definition (name: "Foscam Universal Device", namespace: "Foscam", author: "skp19") {
     capability "Polling"
@@ -23,6 +33,7 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
+    input("debounce", "decimal", title:"Debounce Alarm?", description: "# (1 ~= 60 sec/alarm)?", defaultValue:1)
  }
 
   tiles {
@@ -73,6 +84,8 @@ def updated() {
 }
 
 private def initialize() {
+  state.bounce = 0 // reset
+
   def sched = "0 0/1 * * * ?" // every minute
   schedule(sched, motionCheck)
 }
@@ -233,7 +246,11 @@ def parse(String description) {
           }
           else { // motion, input, or sound
             log.info("Polled: Alarm Active")
-            sendEvent(name: "motion", value: "active")
+            state.bounce = state.bounce + 1
+            if (state.bounce > debounce) {
+              state.bounce = 0 // reset
+              sendEvent(name: "motion", value: "active")
+            }
           }
         }
       }
