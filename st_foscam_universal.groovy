@@ -9,7 +9,7 @@
 */
 
 metadata {
-  definition (name: "Foscam Universal Device", namespace: "Foscam", author: "skp19") {
+  definition (name: "Foscam Universal Device", namespace: "Foscam", author: "justinlhudson") {
     capability "Polling"
     capability "Image Capture"
     capability "Motion Sensor"
