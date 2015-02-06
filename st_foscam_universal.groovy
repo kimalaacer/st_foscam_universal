@@ -15,6 +15,10 @@ metadata {
     capability "Motion Sensor"
     capability "Refresh"
 
+    attribute "motion", "string"
+    attribute "alarmStatus", "string"
+    attribute "hubactionMode", "string"
+
     command "alarmOn"
     command "alarmOff"
   }
@@ -30,7 +34,7 @@ metadata {
     input("debounce", "number", title:"Debounce Alarm?", description: "# (1 ~= 60 sec/alarm)?", defaultValue:1)
  }
 
-  tiles {
+   tiles {
     carouselTile("cameraDetails", "device.image", width: 3, height: 2) { }
 
     standardTile("camera", "device.motion", width: 1, height: 1, canChangeIcon: true, inactiveLabel: false, canChangeBackground: true) {
@@ -40,12 +44,12 @@ metadata {
     }
 
     standardTile("take", "device.image", width: 1, height: 1, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
-      state "take", label: "${name}", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
-      state "taking", label:"${name}", action: "", icon: "st.camera.take-photo", backgroundColor: "#53a7c0"
-      state "image", label: "${name}", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
+      state "take", label: "Take", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
+      state "taking", label:'Taking', action: "", icon: "st.camera.take-photo", backgroundColor: "#53a7c0"
+      state "image", label: "Take", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
     }
 
-    standardTile("alarmStatus", "device.motion", width: 1, height: 1, canChangeIcon: false, inactiveLabel: false, canChangeBackground: false) {
+    standardTile("alarmStatus", "device.alarmStatus", width: 1, height: 1, canChangeIcon: false, inactiveLabel: false, canChangeBackground: false) {
       state "off", label: "off", action: "toggleAlarm", icon: "st.security.alarm.off", backgroundColor: "#FFFFFF"
       state "on", label: "on", action: "toggleAlarm", icon: "st.security.alarm.on",  backgroundColor: "#53A7C0"
     }
@@ -56,7 +60,7 @@ metadata {
       state("alarm",    label:'ALARM',     icon:"st.motion.motion.active",   backgroundColor:"#ff0000")
     }
 
-    standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat") {
+    standardTile("refresh", "device.alarmStatus", inactiveLabel: false, decoration: "flat") {
       state "refresh", action:"polling.poll", icon:"st.secondary.refresh"
     }
     
@@ -68,6 +72,7 @@ metadata {
     details(["cameraDetails", "take", "alarmStatus", "motion", "refresh"])
   }
 }
+
 
 def installed() {
   initialize()
