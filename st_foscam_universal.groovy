@@ -31,7 +31,7 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
-    input("debounce", "number", title:"Debounce Alarm?", description: "# (1 ~= 60 sec/alarm)?", defaultValue:1)
+    input("debounce", "number", title:"Debounce Alarm?", description: "# (1 ~= 60 sec/alarm)?", defaultValue:0)
  }
 
    tiles {
@@ -242,6 +242,7 @@ def parse(String description) {
         else if(body.find("alarm_status")) {
           if(body.find("alarm_status=0")) {
             log.info("Polled: Motion None")
+             state.bounce = 0 // reset
              sendEvent(name: "motion", value: "inactive")
           }
           else { // motion, input, or sound
