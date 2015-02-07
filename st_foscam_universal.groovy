@@ -61,7 +61,7 @@ metadata {
     }
 
     standardTile("refresh", "device.alarmStatus", inactiveLabel: false, decoration: "flat") {
-      state "refresh", action:"polling.poll", icon:"st.secondary.refresh"
+      state "refresh", action:"poll", icon:"st.secondary.refresh"
     }
     
     standardTile("blank", "device.image", width: 1, height: 1, canChangeIcon: false,  canChangeBackground: false, decoration: "flat") {
@@ -84,7 +84,9 @@ def updated() {
 }
 
 private def initialize() {
-  state.bounce = 0 // reset
+  //state.bounce = 0 // reset
+  
+  //log.debug "${debounce}-"
 }
 
 def take() {
@@ -233,17 +235,17 @@ def parse(String description) {
         else if(body.find("alarm_status")) {
           if(body.find("alarm_status=0")) {
              //log.info("Polled: Motion None")
-             state.bounce = state.bounce - 1
-             if(state.bounce <= 0) {
+             log.debug "${state.bounce}"
               state.bounce = 0
               sendEvent(name: "motion", value: "inactive")
-             }
           }
           else { // motion, input, or sound
             //log.info("Polled: Alarm Active")
+            log.debug "${state.bounce}!"
             state.bounce = state.bounce + 1
-            if (state.bounce > settings.debounce) {
-              state.bounce = state.bounce - 1 // keep same no overflow
+            def temp = settings."debounce".toInteger()
+            if (state.bounce > temp) {
+              state.bounce = temp + 1 // keep same no overflow
               sendEvent(name: "motion", value: "active")
             }
           }
