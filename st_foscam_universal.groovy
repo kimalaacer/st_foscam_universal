@@ -85,13 +85,10 @@ def updated() {
 
 private def initialize() {
   state.bounce = 0 // reset
-
-  def sched = "0 0/1 * * * ?" // every minute
-  schedule(sched, motionCheck)
 }
 
 def take() {
-  log.debug("Taking Photo")
+  ////log.debug("Taking Photo")
   sendEvent(name: "hubactionMode", value: "s3");
     if(hdcamera == "true") {
     hubGet("cmd=snapPicture2")
@@ -102,7 +99,7 @@ def take() {
 }
 
 def toggleAlarm() {
-  log.debug "Toggling Alarm"
+ // //log.debug "Toggling Alarm"
   if(device.currentValue("alarmStatus") == "on") {
       alarmOff()
     }
@@ -111,15 +108,9 @@ def toggleAlarm() {
   }
 }
 
-def motionCheck()
-{
-  log.debug "Check Motion"
-  hubGet("/get_status.cgi?")
-  return device.currentValue("motion")
-}
 
 def alarmOn() {
-  log.debug "Enabling Alarm"
+ // //log.debug "Enabling Alarm"
     sendEvent(name: "alarmStatus", value: "on");
     if(hdcamera == "true") {
     hubGet("cmd=setMotionDetectConfig&isEnable=1")
@@ -130,7 +121,7 @@ def alarmOn() {
 }
 
 def alarmOff() {
-  log.debug "Disabling Alarm"
+ // //log.debug "Disabling Alarm"
     sendEvent(name: "alarmStatus", value: "off");
     if(hdcamera == "true") {
     hubGet("cmd=setMotionDetectConfig&isEnable=0")
@@ -165,9 +156,9 @@ private hubGet(def apiCommand) {
     def iphex = convertIPtoHex(ip)
     def porthex = convertPortToHex(port)
     device.deviceNetworkId = "$iphex:$porthex"
-    log.debug "Device Network Id set to ${iphex}:${porthex}"
+    //log.debug "Device Network Id set to ${iphex}:${porthex}"
 
-  log.debug("Executing hubaction on " + getHostAddress())
+  //log.debug("Executing hubaction on " + getHostAddress())
     def uri = ""
     if(hdcamera == "true") {
       uri = "/cgi-bin/CGIProxy.fcgi?" + getLogin() + apiCommand
@@ -175,7 +166,7 @@ private hubGet(def apiCommand) {
     else {
       uri = apiCommand + getLogin()
     }
-    log.debug uri
+    //log.debug uri
     def hubAction = new physicalgraph.device.HubAction(
       method: "GET",
         path: uri,
@@ -190,7 +181,7 @@ private hubGet(def apiCommand) {
 
 //Parse events into attributes
 def parse(String description) {
-  log.debug "Parsing '${description}'"
+  //log.debug "Parsing '${description}'"
     
     def map = [:]
     def retResult = []
@@ -212,44 +203,47 @@ def parse(String description) {
 
             //Get Motion Alarm Status
             if(motionAlarm == "0") {
-                log.info("Polled: Alarm Off")
+                //log.info("Polled: Alarm Off")
                 sendEvent(name: "alarmStatus", value: "off");
             }
             else if(motionAlarm == "1") {
-                log.info("Polled: Alarm On")
+                //log.info("Polled: Alarm On")
                 sendEvent(name: "alarmStatus", value: "on");
             }
 
             //Get IR LED Mode
             if(ledMode == "0") {
-                log.info("Polled: LED Mode Auto")
+                //log.info("Polled: LED Mode Auto")
                 sendEvent(name: "ledStatus", value: "auto")
             }
             else if(ledMode == "1") {
-                log.info("Polled: LED Mode Manual")
+                //log.info("Polled: LED Mode Manual")
                 sendEvent(name: "ledStatus", value: "manual")
             }
       }
       else {
         if(body.find("alarm_motion_armed=0")) {
-            log.info("Polled: Alarm Off")
+            //log.info("Polled: Alarm Off")
             sendEvent(name: "alarmStatus", value: "off")
           }
         else if(body.find("alarm_motion_armed=1")) {
-            log.info("Polled: Alarm On")
+            //log.info("Polled: Alarm On")
             sendEvent(name: "alarmStatus", value: "on")
           }
         else if(body.find("alarm_status")) {
           if(body.find("alarm_status=0")) {
-            log.info("Polled: Motion None")
-             state.bounce = 0 // reset
-             sendEvent(name: "motion", value: "inactive")
+             //log.info("Polled: Motion None")
+             state.bounce = state.bounce - 1
+             if(state.bounce <= 0) {
+              state.bounce = 0
+              sendEvent(name: "motion", value: "inactive")
+             }
           }
           else { // motion, input, or sound
-            log.info("Polled: Alarm Active")
+            //log.info("Polled: Alarm Active")
             state.bounce = state.bounce + 1
-            if (state.bounce > debounce) {
-              state.bounce = 0 // reset
+            if (state.bounce > settings.debounce) {
+              state.bounce = state.bounce - 1 // keep same no overflow
               sendEvent(name: "motion", value: "active")
             }
           }
@@ -280,7 +274,7 @@ def putImageInS3(map) {
     }
   }
   catch(Exception e) {
-    log.error e
+    //log.error e
   }
   finally {
     //Explicitly close the stream
