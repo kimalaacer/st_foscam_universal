@@ -243,9 +243,7 @@ def parse(String description) {
             //log.info("Polled: Alarm Active")
             log.debug "${state.bounce}!"
             state.bounce = state.bounce + 1
-            def temp = settings."debounce".toInteger()
-            if (state.bounce > temp) {
-              state.bounce = temp + 1 // keep same no overflow
+            if (state.bounce > settings."debounce".toInteger()) {
               sendEvent(name: "motion", value: "active")
             }
           }
