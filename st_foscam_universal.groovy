@@ -31,7 +31,7 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
-    input("debounce", "number", title:"Debounce Alarm?", description: "# (1 ~= 60 sec/alarm)?", defaultValue:0)
+    input("trigger", "number", title:"Trigger?", description: "capture second(s)", defaultValue:0)
  }
 
    tiles {
@@ -73,7 +73,6 @@ metadata {
   }
 }
 
-
 def installed() {
   initialize()
 }
@@ -84,9 +83,7 @@ def updated() {
 }
 
 private def initialize() {
-  //state.bounce = 0 // reset
-  
-  //log.debug "${debounce}-"
+  triggerTask()
 }
 
 def take() {
@@ -96,7 +93,7 @@ def take() {
     hubGet("cmd=snapPicture2")
     }
     else {
-      hubGet("/snapshot.cgi?")
+      delayBetween([hubGet("/snapshot.cgi?"), hubGet("/test_ftp.cgi?")])
     }
 }
 
@@ -131,6 +128,18 @@ def alarmOff() {
     else {
       hubGet("/set_alarm.cgi?motion_armed=0&")
     }
+}
+
+def triggerTask() {
+  def seconds = settings."trigger".toInteger()
+  if(seconds > 0) {
+    runIn(seconds, trigger, [overwrite: false])
+  }
+}
+
+def trigger() {
+  hubGet("/test_ftp.cgi?")
+  triggerTask() // recursive
 }
 
 def poll() {
