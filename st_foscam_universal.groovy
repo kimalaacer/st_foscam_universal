@@ -49,6 +49,10 @@ metadata {
       state "image", label: "Take", action: "Image Capture.take", icon: "st.camera.camera", backgroundColor: "#FFFFFF", nextState:"taking"
     }
 
+	standardTile("trigger", "device.trigger", inactiveLabel: false, decoration: "flat") {
+      state "trigger", action:"trigger", icon: "st.camera.camera"
+    }
+
     standardTile("alarmStatus", "device.alarmStatus", width: 1, height: 1, canChangeIcon: false, inactiveLabel: false, canChangeBackground: false) {
       state "off", label: "off", action: "toggleAlarm", icon: "st.security.alarm.off", backgroundColor: "#FFFFFF"
       state "on", label: "on", action: "toggleAlarm", icon: "st.security.alarm.on",  backgroundColor: "#53A7C0"
@@ -69,7 +73,7 @@ metadata {
     }
 
     main "camera"
-    details(["cameraDetails", "take", "alarmStatus", "motion", "refresh"])
+    details(["cameraDetails", "take", "trigger", "alarmStatus", "motion", "refresh"])
   }
 }
 
@@ -93,7 +97,7 @@ def take() {
     hubGet("cmd=snapPicture2")
     }
     else {
-      delayBetween([hubGet("/snapshot.cgi?"), hubGet("/test_ftp.cgi?")])
+      hubGet("/snapshot.cgi?")
     }
 }
 
@@ -133,13 +137,18 @@ def alarmOff() {
 def triggerTask() {
   def seconds = settings."trigger".toInteger()
   if(seconds > 0) {
-    runIn(seconds, trigger, [overwrite: false])
+    runIn(seconds, triggerCycle, [overwrite: false])
   }
 }
 
-def trigger() {
-  hubGet("/test_ftp.cgi?")
+def triggerCycle() {
+  trigger()
   triggerTask() // recursive
+}
+
+def trigger() {
+	hubGet("/test_ftp.cgi?")
+	log.debug("Trigger")
 }
 
 def poll() {
