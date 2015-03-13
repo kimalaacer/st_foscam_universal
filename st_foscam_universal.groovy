@@ -89,13 +89,13 @@ private def initialize() {
 def take() {
   trigger()
   ////log.debug("Taking Photo")
-//  sendEvent(name: "hubactionMode", value: "s3");
-//    if(hdcamera == "true") {
-//    hubGet("cmd=snapPicture2")
-//    }
-//    else {
-//      hubGet("/snapshot.cgi?")
-//    }
+  sendEvent(name: "hubactionMode", value: "s3");
+    if(hdcamera == "true") {
+    hubGet("cmd=snapPicture2")
+   }
+    else {
+     hubGet("/snapshot.cgi?")
+   }
 }
 
 def toggleAlarm() {
