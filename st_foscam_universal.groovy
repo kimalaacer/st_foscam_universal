@@ -83,19 +83,19 @@ def updated() {
 }
 
 private def initialize() {
-  triggerTask()
+
 }
 
 def take() {
   trigger()
   ////log.debug("Taking Photo")
-  sendEvent(name: "hubactionMode", value: "s3");
-    if(hdcamera == "true") {
-    hubGet("cmd=snapPicture2")
-    }
-    else {
-      hubGet("/snapshot.cgi?")
-    }
+//  sendEvent(name: "hubactionMode", value: "s3");
+//    if(hdcamera == "true") {
+//    hubGet("cmd=snapPicture2")
+//    }
+//    else {
+//      hubGet("/snapshot.cgi?")
+//    }
 }
 
 def toggleAlarm() {
@@ -129,18 +129,6 @@ def alarmOff() {
     else {
       hubGet("/set_alarm.cgi?motion_armed=0&")
     }
-}
-
-def triggerTask() {
-  def seconds = settings."trigger".toInteger()
-  if(seconds > 0) {
-    runIn(seconds, triggerCycle, [overwrite: false])
-  }
-}
-
-def triggerCycle() {
-  trigger()
-  triggerTask() // recursive
 }
 
 def trigger() {
