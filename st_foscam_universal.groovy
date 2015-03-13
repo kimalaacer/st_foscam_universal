@@ -31,7 +31,6 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
-    input("trigger", "number", title:"Trigger?", description: "capture second(s)", defaultValue:0)
  }
 
    tiles {
