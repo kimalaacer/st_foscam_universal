@@ -8,7 +8,6 @@ SmartThings support for Foscam Camera with simple motion detection.
 ## Operation
 
   - Can/Should use a *poll* application service as Smarthings service is ~10min or when it feels like it.
-    - [Pollster](https://github.com/statusbits/smartthings/blob/master/Pollster/Pollster.app.groovy)
 
 ## Notes
 

@@ -8,6 +8,8 @@
 *  https://github.com/justinlhudson/st_foscam_universal
 */
 
+
+// http://docs.smartthings.com/en/latest/cloud-and-lan-connected-device-types-developers-guide/building-lan-connected-device-types/building-the-device-type.html#parsing-the-response
 metadata {
   definition (name: "Foscam Universal Device", namespace: "Foscam", author: "justinlhudson") {
     capability "Polling"
@@ -89,7 +91,7 @@ def take() {
   trigger()
   ////log.debug("Taking Photo")
   sendEvent(name: "hubactionMode", value: "s3");
-    if(hdcamera == "true") {
+    if(hdcamera == true) {
     hubGet("cmd=snapPicture2")
    }
     else {
@@ -111,7 +113,7 @@ def toggleAlarm() {
 def alarmOn() {
  // //log.debug "Enabling Alarm"
     sendEvent(name: "alarmStatus", value: "on");
-    if(hdcamera == "true") {
+    if(hdcamera == true) {
     hubGet("cmd=setMotionDetectConfig&isEnable=1")
     }
     else {
@@ -122,7 +124,7 @@ def alarmOn() {
 def alarmOff() {
  // //log.debug "Disabling Alarm"
     sendEvent(name: "alarmStatus", value: "off");
-    if(hdcamera == "true") {
+    if(hdcamera == true) {
     hubGet("cmd=setMotionDetectConfig&isEnable=0")
     }
     else {
@@ -138,7 +140,7 @@ def trigger() {
 def poll() {
   sendEvent(name: "hubactionMode", value: "local");
   //Poll Motion Alarm Status and IR LED Mode
-  if(hdcamera == "true") {
+  if(hdcamera == true) {
     delayBetween([hubGet("cmd=getMotionDetectConfig")])
   }
   else {
@@ -147,7 +149,7 @@ def poll() {
 }
 
 private getLogin() {
-  if(hdcamera == "true") {
+  if(hdcamera == true) {
       return "usr=${username}&pwd=${password}&"
     }
     else {
@@ -160,19 +162,19 @@ private hubGet(def apiCommand) {
     def iphex = convertIPtoHex(ip)
     def porthex = convertPortToHex(port)
     device.deviceNetworkId = "$iphex:$porthex"
-    //log.debug "Device Network Id set to ${iphex}:${porthex}"
+    log.debug "Device Network Id set to ${iphex}:${porthex}"
 
-  //log.debug("Executing hubaction on " + getHostAddress())
+    log.debug("Executing hubaction on " + getHostAddress())
     def uri = ""
-    if(hdcamera == "true") {
+    if(hdcamera == true) {
       uri = "/cgi-bin/CGIProxy.fcgi?" + getLogin() + apiCommand
   }
     else {
       uri = apiCommand + getLogin()
     }
     //log.debug uri
-    def hubAction = new physicalgraph.device.HubAction(
-      method: "GET",
+      def hubAction = new physicalgraph.device.HubAction(
+        method: "GET",
         path: uri,
         headers: [HOST:getHostAddress()]
     )
@@ -180,12 +182,14 @@ private hubGet(def apiCommand) {
         hubAction.options = [outputMsgToS3:true]
         sendEvent(name: "hubactionMode", value: "local");
     }
+  
+  //sendHubCommand(hubAction)
   hubAction
 }
 
 //Parse events into attributes
-def parse(String description) {
-  //log.debug "Parsing '${description}'"
+def parse(description) {
+    log.debug "Parsing '${description}'"
     
     def map = [:]
     def retResult = []
@@ -199,7 +203,7 @@ def parse(String description) {
   //Status Polling
     else if (descMap["headers"] && descMap["body"]) {
         def body = new String(descMap["body"].decodeBase64())
-        if(hdcamera == "true") {
+        if(hdcamera == true) {
             def langs = new XmlSlurper().parseText(body)
 
             def motionAlarm = "$langs.isEnable"
@@ -276,7 +280,7 @@ def putImageInS3(map) {
     }
   }
   catch(Exception e) {
-    //log.error e
+    log.error e
   }
   finally {
     //Explicitly close the stream
@@ -289,6 +293,11 @@ private getPictureName() {
   "image" + "_$pictureUuid" + ".jpg"
 }
 
+private getCallBackAddress() {
+    return device.hub.getDataValue("localIP") + ":" + device.hub.getDataValue("localSrvPortTCP")
+}
+
+// gets the address of the device
 private getHostAddress() {
   return "${ip}:${port}"
 }
