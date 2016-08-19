@@ -250,7 +250,7 @@ def parse(description) {
             //log.info("Polled: Alarm Active")
             log.debug "${state.bounce}!"
             state.bounce = state.bounce + 1
-            if (state.bounce > settings."debounce".toInteger()) {
+            if (state.bounce > settings.debounce) {
               sendEvent(name: "motion", value: "active")
             }
           }
@@ -317,8 +317,8 @@ private getHostAddress() {
     return convertHexToIP(ip) + ":" + convertHexToInt(port)
 }
 
-private Integer convertHexToInt(port) {
-     String hexport = port.toString().format( '%04x', port.toInteger() )
+private String convertHexToInt(port) {
+    String hexport = port.toString().format( '%04x', port.toInteger() )
     return hexport
 }
 
