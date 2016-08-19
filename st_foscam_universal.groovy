@@ -33,6 +33,7 @@ metadata {
     input("hdcamera", "bool", title:"HD Foscam Camera?", description: "Type of Foscam Camera", required: true, displayDuringSetup: true)
     input("mirror", "bool", title:"Mirror?", description: "Camera Mirrored?")
     input("flip", "bool", title:"Flip?", description: "Camera Flipped?")
+    input("debounce", "number", title: "Debounce count", default: 0, required: false, multiple:false)
  }
 
    tiles {
@@ -159,10 +160,10 @@ private getLogin() {
 
 private hubGet(def apiCommand) {
   //Setting Network Device Id
-    def iphex = convertIPtoHex(ip)
-    def porthex = convertPortToHex(port)
-    device.deviceNetworkId = "$iphex:$porthex"
-    log.debug "Device Network Id set to ${iphex}:${porthex}"
+    //def iphex = convertIPtoHex(ip)
+    //def porthex = convertPortToHex(port)
+    device.deviceNetworkId = getHostAddress()
+    //log.debug "Device Network Id set to ${iphex}:${porthex}"
 
     log.debug("Executing hubaction on " + getHostAddress())
     def uri = ""
@@ -176,7 +177,7 @@ private hubGet(def apiCommand) {
       def hubAction = new physicalgraph.device.HubAction(
         method: "GET",
         path: uri,
-        headers: [HOST:getHostAddress()]
+        headers: [HOST:"${ip}:${port}"]
     )
     if(device.currentValue("hubactionMode") == "s3") {
         hubAction.options = [outputMsgToS3:true]
@@ -299,16 +300,29 @@ private getCallBackAddress() {
 
 // gets the address of the device
 private getHostAddress() {
-  return "${ip}:${port}"
+    //def ip = getDataValue("ip")
+    //def port = getDataValue("port")
+
+    if (!ip || !port) {
+        def parts = device.deviceNetworkId.split(":")
+        if (parts.length == 2) {
+            ip = parts[0]
+            port = parts[1]
+        } else {
+            log.warn "Can't figure out ip and port for device: ${device.id}"
+        }
+    }
+
+    log.debug "Using IP: $ip and port: $port for device: ${device.id}"
+    return convertHexToIP(ip) + ":" + convertHexToInt(port)
 }
 
-private String convertIPtoHex(ipAddress) { 
+private Integer convertHexToInt(port) {
+     String hexport = port.toString().format( '%04x', port.toInteger() )
+    return hexport
+}
+
+private String convertHexToIP(ipAddress) {
     String hex = ipAddress.tokenize( '.' ).collect {  String.format( '%02x', it.toInteger() ) }.join()
     return hex
-
-}
-
-private String convertPortToHex(port) {
-  String hexport = port.toString().format( '%04x', port.toInteger() )
-    return hexport
 }
